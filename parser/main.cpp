@@ -13,12 +13,9 @@ void load_file(std::vector<std::string>& data_fale, std::string file_name) {
 
 }
 
-
-
-
 int main()
 {
-    const std::vector<std::vector<std::string>> data_file = load_file(data_file, );
+    const std::vector<std::vector<std::string>> data_file {}; //= load_file(data_file, );
     std::map<std::string, value_cell> processed_data;
     Parser::play_convert(data_file, processed_data);
 

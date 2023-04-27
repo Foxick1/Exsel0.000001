@@ -6,8 +6,9 @@
 #include <vector>
 #include <string>
 #include <cctype>
-#include "parser.h"
- 
+
+static const int32_t ERROR_VALUE = -1;
+
 using type_operand = std::variant<std::string, int32_t>;
 
 enum operator_expr { ADD = '+', SUBTRACT = '-', MYLTYPLY = '*', DIVIDE = '/' } ; // operator expression
@@ -22,8 +23,10 @@ struct data_expression {
     data_expression(type_operand left, operator_expr op, type_operand right)
         :left(left), operator_exp(op), right(right) {};
 
+    using value_cell = std::variant<int32_t, data_expression>;
+
     int32_t calculate(value_cell& cell, std::map<std::string, value_cell>& result) {
-        if (std::holds_alternative<int32_t>(cell)) return *(std::get<int32_t*>(cell));
+        if (std::holds_alternative<int32_t>(cell)) return std::get<int32_t>(cell);
         data_expression temp = std::get<data_expression>(cell);
         if (temp.is_sumoned) return ERROR_VALUE;
         temp.is_sumoned = true;

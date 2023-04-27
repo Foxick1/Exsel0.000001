@@ -10,11 +10,8 @@
 #include "data_expression.h"
 #include <variant>
 
-static const int32_t ERROR_VALUE = -1;
-
 using expression = data_expression;
 using value_cell = std::variant<int32_t, expression>;
- 
 
 class Parser {
 private:
@@ -61,20 +58,16 @@ private:
         return temp;
     }
     static operator_expr convert_operator(std::string::const_iterator& it) {
-        switch (*it) {
-        case '+':
-            operator_expr temp = ADD;
-            return temp;
-        case '-':
-            operator_expr temp = SUBTRACT;
-            return temp;
-        case '*':
-            operator_expr temp = MYLTYPLY;
-            return temp;
-        case '/':
-            operator_expr temp = DIVIDE;
-            return temp;
-        }
+      if (*it == '+') {
+        return ADD;
+      }
+      if (*it == '-') {
+        return SUBTRACT;
+      }
+      if (*it == '*') {
+        return MYLTYPLY;
+      }
+      return DIVIDE;
     }
     static type_operand convert_right_arg
     (std::string::const_iterator& it, std::string::const_iterator end) {
@@ -137,12 +130,12 @@ public:
                     initial_data[index_column][0] + initial_data[0][index_string];
                 value_cell temp_v =
                     convert_to_expression(initial_data[index_column][index_string]);
-                if (!std::holds_alternative<int32_t>)
+                if (!std::holds_alternative<int32_t>(temp_v))
                 {
                     result[key_cell] = std::get<data_expression>(temp_v);
                     continue;
                 }
-                if (std::holds_alternative<int32_t>)
+                if (std::holds_alternative<int32_t>(temp_v))
                 {
                     result[key_cell] = std::get<int32_t>(temp_v);
                     continue;

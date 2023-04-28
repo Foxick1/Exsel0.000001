@@ -15,9 +15,9 @@ using value_cell = std::variant<int32_t, expression>;
 
 class Parser {
 private:
-    static bool is_out_of_range_uint32_t(const std::string str) {
+    static bool is_out_of_range_int32_t(const std::string str) {
         try {
-            if (std::stoul(str) > -2) return true;
+            if (std::stol(str) <= ERROR_VALUE) return true;
             return false;
         }
         catch (std::out_of_range) {
@@ -29,7 +29,7 @@ private:
         for (auto it = str.cbegin(); it < str.end(); ++it) {
             if (!std::isdigit(*it)) return false;
         }
-        is_out_of_range_uint32_t(str);
+        is_out_of_range_int32_t(str);
         return true;
     }
     static bool is_operator(char ch) {
@@ -41,20 +41,20 @@ private:
     (std::string::const_iterator& it, std::string::const_iterator end) {
         std::string temp;
 
-        while (isalpha(*it) && it != end) {
+        while (it != end &&isalpha(*it)) {
             temp.push_back(*it);
             ++it;
         }
 
-        if (!isdigit(*it) && it != end) return ERROR_VALUE;
+        if (!isdigit(*it) || it == end) return ERROR_VALUE;
 
-        while (isdigit(*it)) {
+        while (it != end && isdigit(*it)) {
             temp.push_back(*it);
             ++it;
         }
 
         if (!is_operator(*it) && it != end) return ERROR_VALUE;
-        if (is_number(temp)) return std::stoul(temp);
+        if (is_number(temp)) return std::stol(temp);
         return temp;
     }
     static operator_expr convert_operator(std::string::const_iterator& it) {
@@ -74,29 +74,28 @@ private:
         ++it;
         std::string temp;
 
-        while (isalpha(*it) && it != end) {
+        while (it != end &&isalpha(*it)) {
             temp.push_back(*it);
             ++it;
         }
 
         if (!isdigit(*it) || it == end) return ERROR_VALUE;
 
-        while (isdigit(*it) && it != end) {
+        while (it != end && isdigit(*it)) {
             temp.push_back(*it);
             ++it;
         }
 
         if (it != end) return ERROR_VALUE;
-        if (is_number(temp)) return std::stoul(temp);
+        if (is_number(temp)) return std::stol(temp);
         return temp;
     }
     static value_cell convert_to_expression
-    (const std::string& str) {
+        (const std::string& str) {
         try {
             auto it = str.begin();
             if (!(*it == '=')) return ERROR_VALUE;
             else ++it;
-            if (is_number(str)) return std::stoul(str);
             type_operand left = std::move(convert_left_arg(it, str.cend()));
             if (std::holds_alternative<int32_t>(left) 
                 && std::get<int32_t>(left) == ERROR_VALUE) return ERROR_VALUE;
@@ -108,10 +107,10 @@ private:
             expression temp(left, op, right);
             return temp;
         }
-        catch (std::out_of_range int_diapason) {
+        catch (std::out_of_range& int_diapason) {
             return ERROR_VALUE;
         }
-        catch (std::bad_variant_access get_variant) {
+        catch (std::bad_variant_access& get_variant) {
             return ERROR_VALUE;
         }
 
@@ -127,17 +126,20 @@ public:
             for (size_t index_string = 1; index_string < initial_data[index_column].size();
                 ++index_string) {
                 std::string key_cell =
-                    initial_data[index_column][0] + initial_data[0][index_string];
-                value_cell temp_v =
+                    initial_data[0][index_string] + initial_data[index_column][0];
+                value_cell temp_expr;
+                if (is_number(initial_data[index_column][index_string])) 
+                    temp_expr = std::stol(initial_data[index_column][index_string]);
+                else temp_expr =
                     convert_to_expression(initial_data[index_column][index_string]);
-                if (!std::holds_alternative<int32_t>(temp_v))
+                if (std::holds_alternative<data_expression>(temp_expr))
                 {
-                    result[key_cell] = std::get<data_expression>(temp_v);
+                    result[key_cell] = std::get<data_expression>(temp_expr);
                     continue;
                 }
-                if (std::holds_alternative<int32_t>(temp_v))
+                if (std::holds_alternative<int32_t>(temp_expr))
                 {
-                    result[key_cell] = std::get<int32_t>(temp_v);
+                    result[key_cell] = std::get<int32_t>(temp_expr);
                     continue;
                 }
             }

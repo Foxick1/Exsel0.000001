@@ -7,7 +7,7 @@
 #include <string>
 #include <cctype>
 
-static const int32_t ERROR_VALUE = -1;
+static const int32_t ERROR_VALUE = -2147483648;
 
 using type_operand = std::variant<std::string, int32_t>;
 
@@ -27,7 +27,7 @@ struct data_expression {
 
     int32_t calculate(value_cell& cell, std::map<std::string, value_cell>& result) {
         if (std::holds_alternative<int32_t>(cell)) return std::get<int32_t>(cell);
-        data_expression temp = std::get<data_expression>(cell);
+        data_expression& temp = std::get<data_expression>(cell);
         if (temp.is_sumoned) return ERROR_VALUE;
         temp.is_sumoned = true;
 
@@ -45,7 +45,7 @@ struct data_expression {
             return result_expression;
         case SUBTRACT:
             if (left != ERROR_VALUE && right != ERROR_VALUE) result_expression = left - right;
-            cell.emplace<int32_t>(result_expression);
+            cell = result_expression;
             return result_expression;
         case MYLTYPLY:
             if (left != ERROR_VALUE && right != ERROR_VALUE) result_expression = left * right;
@@ -57,6 +57,7 @@ struct data_expression {
             cell = result_expression;
             return result_expression;
         }
+        return result_expression;
     }
 
 };

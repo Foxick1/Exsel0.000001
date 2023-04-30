@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <exception>
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cctype>
@@ -11,7 +11,6 @@
 #include "data_expression.h"
 #include "parser.h"
 
-//Нет проверки если формат ключа верный, но такого имени ячейки нет.
 //Поймать все исключения
 
 
@@ -38,7 +37,7 @@ int main() { //int agrc,char* argv[]
     const std::vector<std::vector<std::string>> data_file = std::move(load_file(file_name));
     
     
-    std::map<std::string, value_cell> processed_data;
+    std::unordered_map<std::string, value_cell> processed_data;
     Parser::play_convert(data_file, processed_data);
 
     for (size_t index_column = 0, index_row = 0; index_row < data_file.size(); ++index_row) 
@@ -60,13 +59,23 @@ int main() { //int agrc,char* argv[]
             value_cell temp = processed_data[key];
             if (std::holds_alternative<int32_t>(processed_data[key])) {
                 bool last_cell = index_row == data_file.size() - 1;
-                std::cout << std::get<int32_t>(temp) << (last_cell ? "" : ",");
+                if (std::get<int32_t>(temp) == ERROR_VALUE) {
+                    std::cout << "ERR_EXPR" << (last_cell ? "" : ",");
+                }
+                else {
+                    std::cout << std::get<int32_t>(temp) << (last_cell ? "" : ",");
+                }
             } else {
                 data_expression& temp = std::get<data_expression>(processed_data[key]);
                 bool last_cell = index_row == data_file.size() - 1;
-                std::cout << temp.calculate(processed_data[key], processed_data) << (last_cell ? "" : ",");
+                int32_t result = temp.calculate(processed_data[key], processed_data);
+                if (result == ERROR_VALUE) {
+                    std::cout << "ERR_EXPR" << (last_cell ? "" : ",");
+                }
+                else {
+                    std::cout << result << (last_cell ? "" : ",");
+                }
             }
-            
         }
         std::cout << "\n";
     }

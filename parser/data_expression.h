@@ -2,7 +2,7 @@
 #include <iostream>
 #include <exception>
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cctype>
@@ -25,7 +25,7 @@ struct data_expression {
 
     using value_cell = std::variant<int32_t, data_expression>;
 
-    int32_t calculate(value_cell& cell, std::map<std::string, value_cell>& result) {
+    int32_t calculate(value_cell& cell, std::unordered_map<std::string, value_cell>& result) {
         if (std::holds_alternative<int32_t>(cell)) return std::get<int32_t>(cell);
         data_expression& temp = std::get<data_expression>(cell);
         if (temp.is_sumoned) return ERROR_VALUE;
